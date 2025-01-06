@@ -215,6 +215,8 @@ def main():
                 app.loginPage()
             elif st.session_state["current_view"] == "main_menu":
                 app.mainMenu()
+        
+        conn.close()
     except Exception as e:
         st.error(f"{e}")
 
