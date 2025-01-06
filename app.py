@@ -181,11 +181,11 @@ def get_db_config():
     load_dotenv("secret.env")
     if os.getenv("DB_HOST"):
         return (
-            f"host={os.getenv('DB_HOST')} "
-            f"port={os.getenv('DB_PORT')} "
-            f"dbname={os.getenv('DB_NAME')} "
-            f"user={os.getenv('DB_USER')} "
-            f"password={os.getenv('DB_PASSWORD')}"
+            f"host={os.getenv('host')} "
+            f"port={os.getenv('port')} "
+            f"dbname={os.getenv('dbname')} "
+            f"user={os.getenv('user')} "
+            f"password={os.getenv('password')}"
         )
     else:  # Fallback to Streamlit secrets
         return (
@@ -200,7 +200,6 @@ def get_db_config():
 def main():
     # get db config
     conn_str = get_db_config()
-    st.error(conn_str)
 
     try:
         with psycopg.connect(conn_str) as conn:
