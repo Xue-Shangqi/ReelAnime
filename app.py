@@ -188,13 +188,12 @@ def get_db_config():
             "password": os.getenv("DB_PASSWORD"),
         }
     else:  # Fallback to Streamlit secrets
-        db_config = st.secrets["database"]
         return {
-            "host": db_config["host"],
-            "port": db_config["port"],
-            "name": db_config["name"],
-            "user": db_config["user"],
-            "password": db_config["password"],
+            "host": st.secrets["host"],
+            "port": st.secrets["port"],
+            "name": st.secrets["name"],
+            "user": st.secrets["user"],
+            "password": st.secrets["password"],
         }
 
 
