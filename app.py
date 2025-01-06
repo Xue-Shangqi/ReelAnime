@@ -190,13 +190,13 @@ def get_db_config():
             "password": os.getenv("DB_PASSWORD"),
         }
     else:  # Fallback to Streamlit secrets
-        # return {
-        #     "host": st.secrets["host"],
-        #     "port": st.secrets["port"],
-        #     "name": st.secrets["name"],
-        #     "user": st.secrets["user"],
-        #     "password": st.secrets["password"],
-        # }
+        return {
+            # "host": st.secrets["host"],
+            # "port": st.secrets["port"],
+            # "name": st.secrets["name"],
+            # "user": st.secrets["user"],
+            # "password": st.secrets["password"],
+        }
 
 @st.cache_resource
 def init_connection():
