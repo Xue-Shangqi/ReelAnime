@@ -180,20 +180,20 @@ class App:
 def get_db_config():
     load_dotenv("secret.env")
     if os.getenv("DB_HOST"):
-        return(
-            f"host={os.getenv("DB_HOST")} "
-            f"port={os.getenv("DB_PORT")} "
-            f"dbname={os.getenv("DB_NAME")} "
-            f"user={os.getenv("DB_USER")} "
-            f"password={os.getenv("DB_PASSWORD")}"
+        return (
+            f"host={os.getenv('DB_HOST')} "
+            f"port={os.getenv('DB_PORT')} "
+            f"dbname={os.getenv('DB_NAME')} "
+            f"user={os.getenv('DB_USER')} "
+            f"password={os.getenv('DB_PASSWORD')}"
         )
     else:  # Fallback to Streamlit secrets
         return (
-            f"host={st.secrets["host"]} "
-            f"port={st.secrets["port"]} "
-            f"dbname={st.secrets["dbname"]} "
-            f"user={st.secrets["user"]} "
-            f"pool_mode:session "
+            f"host={st.secrets['host']} "
+            f"port={st.secrets['port']} "
+            f"dbname={st.secrets['dbname']} "
+            f"user={st.secrets['user']} "
+            f"password={st.secrets['password']}"
         )
 
 
