@@ -217,7 +217,7 @@ def main():
             elif st.session_state["current_view"] == "main_menu":
                 app.mainMenu()
     except Exception as e:
-        st.write(f"An error occurred: {e}")
+        st.error(f"An error occurred: {e}, {conn_str}")
 
 if __name__ == "__main__":
     main()
