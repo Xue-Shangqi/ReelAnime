@@ -210,13 +210,14 @@ def main():
 
     try:
         with psycopg.connect(conn_str) as conn:
+            print(conn_str)
             app = App(conn)
             if st.session_state["current_view"] == "login":
                 app.loginPage()
             elif st.session_state["current_view"] == "main_menu":
                 app.mainMenu()
     except Exception as e:
-        st.error(f"An error occurred: {e}, \n {conn_str}")
+        st.error(f"{conn_str}")
 
 if __name__ == "__main__":
     main()
