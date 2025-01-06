@@ -2,6 +2,7 @@ from user import User
 from recommander import Recommander
 from streamlit_searchbox import st_searchbox
 from dotenv import load_dotenv
+from supabase import create_client, Client
 import pandas as pd
 import streamlit as st
 import os
@@ -177,6 +178,7 @@ class App:
         anime_id = matching_row["anime_id"].iloc[0]
         st.session_state["user"].AddToLikingList(int(anime_id), self.conn)
     
+@st.cache_resource
 def get_db_config():
     load_dotenv("secret.env")
     if os.getenv("DB_HOST"):
@@ -188,13 +190,19 @@ def get_db_config():
             "password": os.getenv("DB_PASSWORD"),
         }
     else:  # Fallback to Streamlit secrets
-        return {
-            "host": st.secrets["host"],
-            "port": st.secrets["port"],
-            "name": st.secrets["name"],
-            "user": st.secrets["user"],
-            "password": st.secrets["password"],
-        }
+        # return {
+        #     "host": st.secrets["host"],
+        #     "port": st.secrets["port"],
+        #     "name": st.secrets["name"],
+        #     "user": st.secrets["user"],
+        #     "password": st.secrets["password"],
+        # }
+
+@st.cache_resource
+def init_connection():
+    url = st.secrets["url"]
+    key = st.secrets["key"]
+    return create_client(url, key)
 
 
 def main():
@@ -207,18 +215,24 @@ def main():
         f"user={db_config['user']} "
         f"password={db_config['password']}"
     )
-
-    try:
-        with psycopg.connect(conn_str) as conn:
-            app = App(conn)
-            if st.session_state["current_view"] == "login":
-                app.loginPage()
-            elif st.session_state["current_view"] == "main_menu":
-                app.mainMenu()
+    
+    conn = init_connection()
+    app = App(conn)
+    if st.session_state["current_view"] == "login":
+        app.loginPage()
+    elif st.session_state["current_view"] == "main_menu":
+        app.mainMenu()
+    # try:
+    #     with psycopg.connect(conn_str) as conn:
+    #         app = App(conn)
+    #         if st.session_state["current_view"] == "login":
+    #             app.loginPage()
+    #         elif st.session_state["current_view"] == "main_menu":
+    #             app.mainMenu()
         
-        conn.close()
-    except Exception as e:
-        st.error(f"{e}")
+    #     conn.close()
+    # except Exception as e:
+    #     st.error(f"{e}")
 
 if __name__ == "__main__":
     main()
