@@ -24,7 +24,7 @@ class User:
                 """
                 cursor.execute(insert_query, (self.user_id, anime_id))
                 conn.commit()
-                self.GetAnimeInfo(anime_id)
+                self.GetAnimeInfo(anime_id, conn)
 
     
     def GetLikingList(self, conn: psycopg.Connection):
@@ -40,7 +40,7 @@ class User:
 
                 for row in result:
                     anime_id = row[1]
-                    self.GetAnimeInfo(anime_id)
+                    self.GetAnimeInfo(anime_id, conn)
 
 
     def ValidUser(self, uname, password, conn: psycopg.Connection) -> bool:
@@ -103,6 +103,6 @@ class User:
                     anime_data[7],
                     image_data[1]
                 )
-                anime.FillGenres()
+                anime.FillGenres(conn)
                 self.LikeList.append(anime)
                 return anime

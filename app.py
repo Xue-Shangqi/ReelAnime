@@ -1,6 +1,7 @@
 from user import User
 from recommander import Recommander
 from streamlit_searchbox import st_searchbox
+from dotenv import load_dotenv
 import pandas as pd
 import streamlit as st
 import os
@@ -20,7 +21,7 @@ class App:
             os.makedirs("data/", exist_ok=True)
             if not os.path.isfile("data/anime_dataset.csv",):
                 r = Recommander()
-                r.ReadData("data/anime_dataset.csv")
+                r.ReadData("data/anime_dataset.csv", self.conn)
             self.anime_df = pd.read_csv("data/anime_dataset.csv", usecols=["anime_id", "name", "english_name"]) # Preload the data
 
 
@@ -175,21 +176,38 @@ class App:
         ]
         anime_id = matching_row["anime_id"].iloc[0]
         st.session_state["user"].AddToLikingList(int(anime_id), self.conn)
+    
+def get_db_config():
+    load_dotenv("secret.env")
+    if os.getenv("DB_HOST"):
+        return {
+            "host": os.getenv("DB_HOST"),
+            "port": os.getenv("DB_PORT"),
+            "name": os.getenv("DB_NAME"),
+            "user": os.getenv("DB_USER"),
+            "password": os.getenv("DB_PASSWORD"),
+        }
+    else:  # Fallback to Streamlit secrets
+        return {
+            "host": st.secrets["database"]["host"],
+            "port": st.secrets["database"]["port"],
+            "name": st.secrets["database"]["name"],
+            "user": st.secrets["database"]["user"],
+            "password": st.secrets["database"]["password"],
+        }
 
 
 def main():
-    # Access secrets
-    db_config = st.secrets["database"]
-    db_host = db_config["host"]
-    db_port = db_config["port"]
-    db_name = db_config["name"]
-    db_user = db_config["user"]
-    db_password = db_config["password"]
+    # get db config
+    db_config = get_db_config()
+    conn_str = (
+        f"host={db_config['host']} "
+        f"port={db_config['port']} "
+        f"dbname={db_config['name']} "
+        f"user={db_config['user']} "
+        f"password={db_config['password']}"
+    )
 
-    # Construct the connection string
-    conn_str = f"host={db_host} port={db_port} dbname={db_name} user={db_user} password={db_password}"
-
-    print(f"Connecting to: {conn_str}")
     try:
         with psycopg.connect(conn_str) as conn:
             app = App(conn)
