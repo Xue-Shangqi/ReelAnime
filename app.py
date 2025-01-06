@@ -180,33 +180,26 @@ class App:
 def get_db_config():
     load_dotenv("secret.env")
     if os.getenv("DB_HOST"):
-        return {
-            "host": os.getenv("DB_HOST"),
-            "port": os.getenv("DB_PORT"),
-            "name": os.getenv("DB_NAME"),
-            "user": os.getenv("DB_USER"),
-            "password": os.getenv("DB_PASSWORD"),
-        }
+        return(
+            f"host={os.getenv("DB_HOST")} "
+            f"port={os.getenv("DB_PORT")} "
+            f"dbname={os.getenv("DB_NAME")} "
+            f"user={os.getenv("DB_USER")} "
+            f"password={os.getenv("DB_PASSWORD")}"
+        )
     else:  # Fallback to Streamlit secrets
-        return {
-            "host": st.secrets["host"],
-            "port": st.secrets["port"],
-            "name": st.secrets["name"],
-            "user": st.secrets["user"],
-            "password": st.secrets["password"],
-        }
+        return (
+            f"host={st.secrets["host"]} "
+            f"port={st.secrets["port"]} "
+            f"dbname={st.secrets["dbname"]} "
+            f"user={st.secrets["user"]} "
+            f"pool_mode:session "
+        )
 
 
 def main():
     # get db config
-    db_config = get_db_config()
-    conn_str = (
-        f"host={db_config['host']} "
-        f"port={db_config['port']} "
-        f"dbname={db_config['name']} "
-        f"user={db_config['user']} "
-        f"password={db_config['password']}"
-    )
+    conn_str = get_db_config()
 
     try:
         with psycopg.connect(conn_str) as conn:
