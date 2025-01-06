@@ -207,14 +207,14 @@ def init_connection():
 
 def main():
     # get db config
-    db_config = get_db_config()
-    conn_str = (
-        f"host={db_config['host']} "
-        f"port={db_config['port']} "
-        f"dbname={db_config['name']} "
-        f"user={db_config['user']} "
-        f"password={db_config['password']}"
-    )
+    # db_config = get_db_config()
+    # conn_str = (
+    #     f"host={db_config['host']} "
+    #     f"port={db_config['port']} "
+    #     f"dbname={db_config['name']} "
+    #     f"user={db_config['user']} "
+    #     f"password={db_config['password']}"
+    # )
     
     conn = init_connection()
     app = App(conn)
