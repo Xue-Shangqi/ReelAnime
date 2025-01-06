@@ -188,12 +188,13 @@ def get_db_config():
             "password": os.getenv("DB_PASSWORD"),
         }
     else:  # Fallback to Streamlit secrets
+        db_config = st.secrets["database"]
         return {
-            "host": st.secrets["database"]["host"],
-            "port": st.secrets["database"]["port"],
-            "name": st.secrets["database"]["name"],
-            "user": st.secrets["database"]["user"],
-            "password": st.secrets["database"]["password"],
+            "host": db_config["host"],
+            "port": db_config["port"],
+            "name": db_config["name"],
+            "user": db_config["user"],
+            "password": db_config["password"],
         }
 
 
@@ -216,7 +217,7 @@ def main():
             elif st.session_state["current_view"] == "main_menu":
                 app.mainMenu()
     except Exception as e:
-        print(f"An error occurred: {e}")
+        st.write(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     main()
