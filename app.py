@@ -4,9 +4,11 @@ from streamlit_searchbox import st_searchbox
 import pandas as pd
 import streamlit as st
 import os
+import psycopg
 
 class App:
-    def __init__(self):
+    def __init__(self, conn: psycopg.Connection):
+        self.conn = conn
         if "user" not in st.session_state:
             st.session_state["user"] = User()
         
@@ -42,7 +44,7 @@ class App:
             login_submit = st.form_submit_button("Login")
 
         if login_submit:
-            if st.session_state["user"].ValidUser(username, password):
+            if st.session_state["user"].ValidUser(username, password, self.conn):
                 st.session_state["current_view"] = "main_menu"
                 st.success("Login successful")
                 st.rerun()
@@ -66,7 +68,7 @@ class App:
                 elif reg_password != reg_confirmpassword:
                     st.error("Passwords do not match.")
                 else:
-                    st.session_state["user"].CreateUser(reg_username, reg_confirmpassword)
+                    st.session_state["user"].CreateUser(reg_username, reg_confirmpassword, self.conn)
                     st.session_state["current_view"] = "main_menu"
                     st.success("Account successful created")
                     st.rerun()
@@ -94,7 +96,7 @@ class App:
         col1, col2 = st.columns([2, 3])
 
         # Display current liking list
-        st.session_state["user"].GetLikingList()
+        st.session_state["user"].GetLikingList(self.conn)
         col1.subheader("Current Like List")
         with col1.container(height=500):
             if st.session_state["user"].LikeList:
@@ -119,14 +121,14 @@ class App:
         with col2.container(height=500):
             if st.button("Get Recommendation", key="recommendBtn", use_container_width=True):
                 rec = Recommander(k= 4)
-                rec.ReadData("data/anime_dataset.csv")
-                rec.ReadData("data/anime_genres.csv")
-                rec.ReadData("data/anime_images.csv")
-                rec.PreProcessing()
+                rec.ReadData("data/anime_dataset.csv", self.conn)
+                rec.ReadData("data/anime_genres.csv", self.conn)
+                rec.ReadData("data/anime_images.csv", self.conn)
+                rec.PreProcessing(self.conn)
                 rec.TrainModel()
 
                 anime_ids = [anime.anime_id for anime in st.session_state["user"].LikeList]
-                recList = rec.Recommend(anime_ids)
+                recList = rec.Recommend(anime_ids, self.conn)
                 
                 for sublist in recList:
                     row = st.columns(3)
@@ -171,7 +173,7 @@ class App:
             (self.anime_df["english_name"] == english_name)
         ]
         anime_id = matching_row["anime_id"].iloc[0]
-        st.session_state["user"].AddToLikingList(int(anime_id))
+        st.session_state["user"].AddToLikingList(int(anime_id), self.conn)
 
 
 def main():
@@ -180,11 +182,17 @@ def main():
     db_name = os.getenv("DB_NAME")
     db_user = os.getenv("DB_USER")
     db_password = os.getenv("DB_PASSWORD")
-    app = App()
-    if st.session_state["current_view"] == "login":
-        app.loginPage()
-    elif st.session_state["current_view"] == "main_menu":
-        app.mainMenu()
+    conn_str = f"host={db_host} port={db_port} dbname={db_name} user={db_user} password={db_password}"
+
+    try:
+        with psycopg.connect(conn_str) as conn:
+            app = App()
+            if st.session_state["current_view"] == "login":
+                app.loginPage()
+            elif st.session_state["current_view"] == "main_menu":
+                app.mainMenu()
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     main()

@@ -14,7 +14,7 @@ class Recommander:
         self.indices_to_ids = {}  
         self.ids_to_names = {}  
 
-    def ReadData(self, filePath):
+    def ReadData(self, filePath, conn: psycopg.Connection):
         if os.path.isfile(filePath):
             df = pd.read_csv(filePath)
             return df
@@ -31,20 +31,19 @@ class Recommander:
                     print("Invalid path")
 
             if db:
-                with psycopg.connect("dbname=finalproject user=postgres password=shang") as conn:
-                    query = f"SELECT * FROM {db};"
-                    with conn.cursor() as cur:
-                        cur.execute(query)
-                        rows = cur.fetchall()
-                        col_names = [desc[0] for desc in cur.description]
-                    
-                    df = pd.DataFrame(rows, columns=col_names)
-                    df.to_csv(filePath, index=False)
-                    return df
+                query = f"SELECT * FROM {db};"
+                with conn.cursor() as cur:
+                    cur.execute(query)
+                    rows = cur.fetchall()
+                    col_names = [desc[0] for desc in cur.description]
+                
+                df = pd.DataFrame(rows, columns=col_names)
+                df.to_csv(filePath, index=False)
+                return df
 
-    def PreProcessing(self):
-        anime_df = self.ReadData("data/anime_dataset.csv")
-        genres_df = self.ReadData("data/anime_genres.csv")
+    def PreProcessing(self, conn: psycopg.Connection):
+        anime_df = self.ReadData("data/anime_dataset.csv", conn)
+        genres_df = self.ReadData("data/anime_genres.csv", conn)
 
         if anime_df is not None and genres_df is not None:
             # One-hot encode genres
@@ -78,7 +77,7 @@ class Recommander:
         else:
             print("Data not processed. Run PreProcessing first.")
 
-    def Recommend(self, anime_ids):
+    def Recommend(self, anime_ids, conn: psycopg.Connection):
         if self.data is not None:
             if isinstance(anime_ids, list):
                 recommendations = []
@@ -104,39 +103,38 @@ class Recommander:
                         print(f"Anime ID {anime_id} not found in dataset.")
 
                 # Convert the recommendations into anime object after query for all the data 
-                with psycopg.connect("dbname=finalproject user=postgres password=shang") as conn:
-                    queryAnime = """
-                        SELECT * FROM anime
-                        WHERE anime_id = ANY(%s)
-                    """
-                    queryAnimeImage = """
-                        SELECT * FROM animeimage
-                        WHERE anime_id = ANY(%s)
-                    """
+                queryAnime = """
+                    SELECT * FROM anime
+                    WHERE anime_id = ANY(%s)
+                """
+                queryAnimeImage = """
+                    SELECT * FROM animeimage
+                    WHERE anime_id = ANY(%s)
+                """
 
-                    recommendationsObj = []
-                    with conn.cursor() as cursor:
-                        for sublist in recommendations:
-                            cursor.execute(queryAnime, (list(sublist),))
-                            animeresult = cursor.fetchall()
-                            cursor.execute(queryAnimeImage, (list(sublist),))
-                            imageresult = cursor.fetchall()
+                recommendationsObj = []
+                with conn.cursor() as cursor:
+                    for sublist in recommendations:
+                        cursor.execute(queryAnime, (list(sublist),))
+                        animeresult = cursor.fetchall()
+                        cursor.execute(queryAnimeImage, (list(sublist),))
+                        imageresult = cursor.fetchall()
 
-                            tempList = []
-                            for i, data in enumerate(animeresult):
-                                anime = Anime(
-                                    int(data[0]),
-                                    data[1],
-                                    int(data[2]),
-                                    data[3],
-                                    data[4],
-                                    float(data[5]),
-                                    data[6],
-                                    data[7],
-                                    imageresult[i][1]
-                                )
-                                tempList.append(anime)
-                            recommendationsObj.append(tempList)
+                        tempList = []
+                        for i, data in enumerate(animeresult):
+                            anime = Anime(
+                                int(data[0]),
+                                data[1],
+                                int(data[2]),
+                                data[3],
+                                data[4],
+                                float(data[5]),
+                                data[6],
+                                data[7],
+                                imageresult[i][1]
+                            )
+                            tempList.append(anime)
+                        recommendationsObj.append(tempList)
                 return recommendationsObj
             else:
                 print("Input should be a list of anime IDs.")

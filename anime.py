@@ -27,23 +27,22 @@ class Anime:
             "genres": self.genres
         }
 
-    def FillGenres(self):
-        with psycopg.connect("dbname=finalproject user=postgres password=shang") as conn:
-            queryGenre = """
-                    SELECT * FROM animegenre
-                    WHERE anime_id = %s
-                """
-            queryGenreName = """
-                    SELECT * FROM genres
-                    WHERE genre_id = %s
-                """
-            with conn.cursor() as cursor:
-                cursor.execute(queryGenre, (self.anime_id,))
-                result = cursor.fetchall()
+    def FillGenres(self, conn: psycopg.Connection):
+        queryGenre = """
+                SELECT * FROM animegenre
+                WHERE anime_id = %s
+            """
+        queryGenreName = """
+                SELECT * FROM genres
+                WHERE genre_id = %s
+            """
+        with conn.cursor() as cursor:
+            cursor.execute(queryGenre, (self.anime_id,))
+            result = cursor.fetchall()
 
-                for row in result:
-                    genre_id = row[1]
-                    cursor.execute(queryGenreName, (genre_id,))
-                    genres = cursor.fetchone()
+            for row in result:
+                genre_id = row[1]
+                cursor.execute(queryGenreName, (genre_id,))
+                genres = cursor.fetchone()
 
-                    self.genres.append(genres[1])
+                self.genres.append(genres[1])
