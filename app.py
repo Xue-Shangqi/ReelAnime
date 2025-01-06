@@ -6,6 +6,7 @@ import streamlit as st
 import os
 import psycopg
 
+
 class App:
     def __init__(self, conn: psycopg.Connection):
         self.conn = conn
@@ -177,13 +178,18 @@ class App:
 
 
 def main():
-    db_host = os.getenv("DB_HOST")
-    db_port = os.getenv("DB_PORT")
-    db_name = os.getenv("DB_NAME")
-    db_user = os.getenv("DB_USER")
-    db_password = os.getenv("DB_PASSWORD")
-    conn_str = f"host={db_host} port={db_port} dbname={db_name} user={db_user} password={db_password}"
+    # Access secrets
+    db_config = st.secrets["database"]
+    db_host = db_config["host"]
+    db_port = db_config["port"]
+    db_name = db_config["name"]
+    db_user = db_config["user"]
+    db_password = db_config["password"]
 
+    # Construct the connection string
+    conn_str = f"host={db_host} port={db_port} dbname={db_name} user={db_user} password={db_password}"
+    
+    print(f"Connecting to: {conn_str}")
     try:
         with psycopg.connect(conn_str) as conn:
             app = App()
