@@ -188,11 +188,11 @@ def main():
 
     # Construct the connection string
     conn_str = f"host={db_host} port={db_port} dbname={db_name} user={db_user} password={db_password}"
-    
+
     print(f"Connecting to: {conn_str}")
     try:
         with psycopg.connect(conn_str) as conn:
-            app = App()
+            app = App(conn)
             if st.session_state["current_view"] == "login":
                 app.loginPage()
             elif st.session_state["current_view"] == "main_menu":
