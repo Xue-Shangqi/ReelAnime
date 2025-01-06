@@ -200,6 +200,7 @@ def get_db_config():
 def main():
     # get db config
     conn_str = get_db_config()
+    st.error(conn_str)
 
     try:
         with psycopg.connect(conn_str) as conn:
